@@ -12,7 +12,7 @@ if "session_id" not in st.session_state:
 # セッションに会話履歴を定義
 if "history" not in st.session_state:
     st.session_state.history = DynamoDBChatMessageHistory(
-        table_name="bsc-db", session_id=st.session_state.session_id
+        table_name="bsc_db", session_id=st.session_state.session_id
     )
 
 # セッションにLangChainの処理チェーンを定義
@@ -20,10 +20,7 @@ if "chain" not in st.session_state:
     # プロンプトを定義
     prompt = ChatPromptTemplate.from_messages(
         [
-            (
-                "system",
-                "あなたはAIアシスタント「ベッドロッくん」です。絵文字入りでフレンドリーにチャット応対してください。",
-            ),
+            ("system", "絵文字入りでフレンドリーに会話してください"),
             MessagesPlaceholder(variable_name="messages"),
             MessagesPlaceholder(variable_name="human_message"),
         ]
@@ -31,14 +28,13 @@ if "chain" not in st.session_state:
 
     # チャット用LLMを定義
     chat = ChatBedrock(
-        model_id="anthropic.claude-3-5-sonnet-20240620-v1:0",
+        model_id="anthropic.claude-3-haiku-20240307-v1:0",
         model_kwargs={"max_tokens": 4000},
         streaming=True,
     )
 
     # チェーンを定義
-    chain = prompt | chat
-    st.session_state.chain = chain
+    st.session_state.chain = prompt | chat
 
 # タイトルを画面表示
 st.title("Bedrockと話そう！")
