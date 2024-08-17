@@ -5,22 +5,19 @@ from langchain_community.chat_message_histories import DynamoDBChatMessageHistor
 from langchain_core.messages import HumanMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
-# タイトル
-st.title("Bedrockと話そう！")
-
 # セッションIDを定義
 if "session_id" not in st.session_state:
     st.session_state.session_id = "session_id"
 
-# セッションに履歴を定義
+# セッションに会話履歴を定義
 if "history" not in st.session_state:
     st.session_state.history = DynamoDBChatMessageHistory(
-        table_name="SessionTable", session_id=st.session_state.session_id
+        table_name="bsc-db", session_id=st.session_state.session_id
     )
 
-# セッションにChainを定義
+# セッションにLangChainの処理チェーンを定義
 if "chain" not in st.session_state:
-    # プロンプトを生成
+    # プロンプトを定義
     prompt = ChatPromptTemplate.from_messages(
         [
             (
@@ -32,16 +29,19 @@ if "chain" not in st.session_state:
         ]
     )
 
-    # ChatBedrockを生成
+    # チャット用LLMを定義
     chat = ChatBedrock(
         model_id="anthropic.claude-3-5-sonnet-20240620-v1:0",
         model_kwargs={"max_tokens": 4000},
         streaming=True,
     )
 
-    # Chainを生成
+    # チェーンを定義
     chain = prompt | chat
     st.session_state.chain = chain
+
+# タイトルを画面表示
+st.title("Bedrockと話そう！")
 
 # 履歴クリアボタンを画面表示
 if st.button("履歴クリア"):
@@ -70,6 +70,6 @@ if prompt := st.chat_input("何でも話してね！"):
             )
         )
 
-    # 履歴に追加
+    # 会話を履歴に追加
     st.session_state.history.add_user_message(prompt)
     st.session_state.history.add_ai_message(response)
